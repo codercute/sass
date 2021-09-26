@@ -2,22 +2,24 @@
   <div class="dashboard-container">
     <div class="app-container" />
     <el-card class="tree-card">
-      <tree-tools :tree-node="company" :is-root="true" />
+      <tree-tools :tree-node="company" :is-root="true" @addDepts="addDepts" />
       <el-tree :data="departs" :props="defaultProps" :default-expand-all="true">
-        <tree-tools slot-scope="{ data }" :tree-node="data" />
+        <tree-tools slot-scope="{ data }" :tree-node="data" @delDepts="getDepartments" @addDepts="addDepts" />
       </el-tree>
     </el-card>
-
+    <add-dept :show-dialog="showDialog" :tree-node="node" />
   </div>
 </template>
 
 <script>
 import treeTools from './components/tree-tools.vue'
+import addDept from './components/add-dept.vue'
 import { getDepartments } from '@/api/departments'
 import { tranLisToTreeData } from '@/utils/processing-data'
 export default {
   components: {
-    treeTools
+    treeTools,
+    addDept
   },
   data() {
     return {
@@ -25,7 +27,9 @@ export default {
         label: 'name'
       },
       departs: [],
-      company: {}
+      company: {},
+      showDialog: false,
+      node: null
     }
   },
   created() {
@@ -35,8 +39,12 @@ export default {
     async getDepartments() {
       const result = await getDepartments()
       console.log(result)
-      this.company = { name: result.companyName, manager: '负责人' }
+      this.company = { name: result.companyName, manager: '负责人', id: '' }
       this.departs = tranLisToTreeData(result.depts, '')
+    },
+    addDepts(node) {
+      this.showDialog = true
+      this.node = node
     }
   }
 }
