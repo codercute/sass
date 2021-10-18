@@ -19,3 +19,11 @@ export function addDepartments(data) {
     method: 'post'
   })
 }
+
+export function updateDepartments(data) {
+  return request({
+    url: `/company/department/${data.id}`,
+    method: 'put',
+    data
+  })
+}

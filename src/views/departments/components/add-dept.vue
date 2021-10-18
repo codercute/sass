@@ -1,5 +1,5 @@
 <template>
-  <el-dialog title="新增部门" :visible="showDialog" @close="btnCancel">
+  <el-dialog :title="showtitle" :visible="showDialog" @close="btnCancel">
     <el-form ref="deptForm" :model="formData" :rules="rules" label-width="120px">
       <el-form-item prop="name" label="部门名称">
         <el-input v-model="formData.name" style="width:80%" placeholder="1-50个字符" />
@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import { getDepartments, addDepartments } from '@/api/departments'
+import { getDepartments, addDepartments, updateDepartments } from '@/api/departments'
 import { getEmployeeSimple, getDepartDetail } from '@/api/employees'
 export default {
 
@@ -46,15 +46,25 @@ export default {
       const { depts } = await getDepartments()
       // depts是所有的部门数据
       // 如何去找技术部所有的子节点
-      const isRepeat = depts.filter(item => item.pid === this.treeNode.id).some(item => item.name === value)
-      isRepeat ? callback(new Error(`同级部门下已经有${value}的部门了`)) : callback()
+      let isRepeat = false
+      if (this.formData.id) {
+        isRepeat = depts.filter(item => item.id !== this.formData.id && item.pid === this.formData.pid).some(item => item.name === value)
+      } else {
+        isRepeat = depts.filter(item => item.pid === this.treeNode.id).some(item => item.name === value)
+        isRepeat ? callback(new Error(`同级部门下已经有${value}的部门了`)) : callback()
+      }
     }
     // 检查编码重复
     const checkCodeRepeat = async(rule, value, callback) => {
       // 先要获取最新的组织架构数据
       const { depts } = await getDepartments()
-      const isRepeat = depts.some(item => item.code === value && value) // 这里加一个 value不为空 因为我们的部门有可能没有code
-      isRepeat ? callback(new Error(`组织架构中已经有部门使用${value}编码`)) : callback()
+      let isRepeat = false
+      if (this.formData.id) {
+        isRepeat = depts.some(item => item.id !== this.formData.id && item.code === value && value)
+      } else {
+        isRepeat = depts.some(item => item.code === value && value) // 这里加一个 value不为空 因为我们的部门有可能没有code
+        isRepeat ? callback(new Error(`组织架构中已经有部门使用${value}编码`)) : callback()
+      }
     }
     return {
       formData: {
@@ -81,6 +91,11 @@ export default {
       peoples: []
     }
   },
+  computed: {
+    showtitle() {
+      return this.formData.id ? '编辑部门' : '新增子部门'
+    }
+  },
   methods: {
     async getEmployeeSimple() {
       this.peoples = await getEmployeeSimple()
@@ -88,7 +103,11 @@ export default {
     btnOK() {
       this.$refs.deptForm.validate(async isOK => {
         if (isOK) {
-          await addDepartments({ ...this.formData, pid: this.treeNode.id })
+          if (this.formData.id) {
+            await updateDepartments(this.formData)
+          } else {
+            await addDepartments({ ...this.formData, pid: this.treeNode.id })
+          }
           this.$emit('addDepts')
           this.$emit('update:showDialog', false)
         }
