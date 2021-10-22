@@ -14,7 +14,7 @@
               <el-table-column label="操作" align="center">
                 <template slot-scope="{ row }">
                   <el-button size="small" type="success">分配权限</el-button>
-                  <el-button size="small" type="primary">编辑</el-button>
+                  <el-button size="small" type="primary" @click="editRole(row.id)">编辑</el-button>
                   <el-button size="small" type="danger" @click="deleteRole(row.id)">删除</el-button>
                 </template>
               </el-table-column>
@@ -46,11 +46,27 @@
         </el-tabs>
       </el-card>
     </div>
+    <el-dialog title="编辑部门" :visible="showDialog">
+      <el-form ref="roleForm" :model="roleForm" :rules="rules" label-width="120px">
+        <el-form-item label="角色名称" prop="name">
+          <el-input v-model="roleForm.name"></el-input>
+        </el-form-item>
+        <el-form-item label="角色描述">
+          <el-input v-model="roleForm.description"></el-input>
+        </el-form-item>
+      </el-form>
+      <el-row type="flex" justify="center">
+        <el-col :span="5" type="flex">
+          <el-button size="small" @click="btnCancel">取消</el-button>
+          <el-button size="small" type="primary" @click="btnOk">确定</el-button>
+        </el-col>
+      </el-row>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { getRoleList, getCompanyInfo, deleteRole } from '@/api/setting'
+import { getRoleList, getCompanyInfo, deleteRole, getRoleDetail, updateRole } from '@/api/setting'
 import { mapGetters } from 'vuex'
 export default {
   data() {
@@ -63,6 +79,14 @@ export default {
       },
       formData: {
 
+      },
+      showDialog: false,
+      roleForm: {
+        name: '',
+        description: ''
+      },
+      rules: {
+        name: [{ required: true, message: '角色名称不能为空' }]
       }
     }
   },
@@ -94,12 +118,35 @@ export default {
           type: 'success',
           message: '删除成功!'
         })
-      }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        })
+      }).catch((error) => {
+        // this.$message({
+        //   type: 'info',
+        //   message: '已取消删除'
+        // })
+        console.log(error)
       })
+    },
+    async editRole(id) {
+      this.roleForm = await getRoleDetail(id)
+      this.showDialog = true
+    },
+    async btnOk() {
+      try {
+        await this.$refs.roleForm.validate()
+        if (this.roleForm.id) {
+          await updateRole(this.roleForm)
+        } else {
+          // await updateRole(this.roleForm)
+        }
+        this.getRoleList()
+        this.$message.success('操作成功')
+        this.showDialog = false
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    btnCancel() {
+
     }
   }
 }
