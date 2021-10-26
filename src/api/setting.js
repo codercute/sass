@@ -33,3 +33,11 @@ export function updateRole(data) {
     data
   })
 }
+
+export function addRole(data) {
+  return request({
+    url: '/sys/role',
+    method: 'post',
+    data
+  })
+}
