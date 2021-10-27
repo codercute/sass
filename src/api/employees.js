@@ -11,3 +11,10 @@ export function getDepartDetail(id) {
     url: `/company/department/${id}`
   })
 }
+
+export function getEmployeeList(params) {
+  return request({
+    url: '/sys/user',
+    params
+  })
+}
