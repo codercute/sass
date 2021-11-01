@@ -43,7 +43,7 @@
           <el-pagination :page-size="page.size" :current-page="page.page" :total="page.total" layout="prev, pager, next" @current-change="changePage"></el-pagination>
         </el-row>
       </el-card>
-      <add-employee :show-dialog="showDialog"></add-employee>
+      <add-employee :show-dialog.sync="showDialog"></add-employee>
     </div>
   </div>
 </template>
