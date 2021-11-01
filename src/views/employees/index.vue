@@ -29,13 +29,13 @@
             </template>
           </el-table-column>
           <el-table-column label="操作" sortable="" fixed="right" width="280">
-            <template>
+            <template v-slot="{ row }">
               <el-button type="text" size="small">查看</el-button>
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
               <el-button type="text" size="small">角色</el-button>
-              <el-button type="text" size="small">删除</el-button>
+              <el-button type="text" size="small" @click="deleteEmployee(row.id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -43,13 +43,18 @@
           <el-pagination :page-size="page.size" :current-page="page.page" :total="page.total" layout="prev, pager, next" @current-change="changePage"></el-pagination>
         </el-row>
       </el-card>
+      <add-employee :show-dialog="showDialog"></add-employee>
     </div>
   </div>
 </template>
 <script>
-import { getEmployeeList } from '@/api/employees'
+import { getEmployeeList, delEmployee } from '@/api/employees'
 import employess from '@/api/constant/employees'
+import addEmployee from './components/add-employee'
 export default {
+  components: {
+    addEmployee
+  },
   data() {
     return {
       loading: false,
@@ -58,7 +63,8 @@ export default {
         page: 1,
         size: 10,
         total: 0
-      }
+      },
+      showDialog: true
     }
   },
   created() {
@@ -79,6 +85,18 @@ export default {
     formatEmpolyeeList(row, column, cellValue, index) {
       const obj = employess.hireType.find((item) => item.id === cellValue)
       return obj ? obj.value : '未知'
+    },
+    deleteEmployee(id) {
+      this.$confirm('确定要删除该员工吗？').then(async() => {
+        await delEmployee(id)
+        this.$message.success('删除员工成功')
+        this.getEmployeeList()
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消'
+        })
+      })
     }
   }
 }
