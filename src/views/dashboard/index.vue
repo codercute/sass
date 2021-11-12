@@ -9,6 +9,7 @@
         <el-button type="primary">按钮</el-button>
       </template>
     </page-tools>
+    <upload-excel></upload-excel>
   </div>
 </template>
 

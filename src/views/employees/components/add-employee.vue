@@ -1,6 +1,6 @@
 <template>
-  <el-dialog title="新增员工" :visible="showDialog">
-    <el-form :model="formData" :rules="rules" label-width="120px">
+  <el-dialog title="新增员工" :visible="showDialog" @close="btnCancel">
+    <el-form ref="addEmploy" :model="formData" :rules="rules" label-width="120px">
       <el-form-item label="姓名" prop="username">
         <el-input v-model="formData.username" style="width: 50%" placeholder="请输入姓名"></el-input>
       </el-form-item>
@@ -15,13 +15,16 @@
         ></el-date-picker>
       </el-form-item>
       <el-form-item label="聘用形式" prop="formOfEmployment">
-        <el-select v-model="formData.formOfEmployment" style="width: 50%" placeholder="请选择"></el-select>
+        <el-select v-model="formData.formOfEmployment" style="width: 50%" placeholder="请选择">
+          <el-option v-for="item in EmployeeEnum.hireType" :key="item.id" :label="item.value" :value="item.id"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item label="工号" prop="workNumber">
         <el-input v-model="formData.workNumber" style="width: 50%" placeholder="请输入工号"></el-input>
       </el-form-item>
       <el-form-item label="部门" prop="departmentName">
-        <el-input v-model="formData.departmentName" style="width: 50%" placeholder="请选择部门"></el-input>
+        <el-input v-model="formData.departmentName" style="width: 50%" placeholder="请选择部门" @focus="getDepartments"></el-input>
+        <el-tree v-if="showTree" v-loading="loading" :data="treeData" :props="{label:'name'}" :default-expand-all="true" @node-click="selectNode" />
       </el-form-item>
       <el-form-item label="转正时间" prop="correctionTime">
         <el-date-picker v-model="formData.correctionTime" style="width: 50%" placeholder="请选择转正时间" />
@@ -30,8 +33,8 @@
     <template v-slot:footer>
       <el-row type="flex" justify="center">
         <el-col :span="6">
-          <el-button size="small">取消</el-button>
-          <el-button type="primary" size="small">确定</el-button>
+          <el-button size="small" @click="btnCancel">取消</el-button>
+          <el-button type="primary" size="small" @click="btnOk">确定</el-button>
         </el-col>
       </el-row>
     </template>
@@ -39,6 +42,9 @@
 </template>
 
 <script>
+import { getDepartments } from '@/api/departments'
+import { tranLisToTreeData } from '@/utils/processing-data'
+import { addEmployee } from '@/api/employees'
 import EmployeeEnum from '@/api/constant/employees'
 export default {
   props: {
@@ -49,6 +55,7 @@ export default {
   },
   data() {
     return {
+      EmployeeEnum,
       formData: {
         username: '',
         mobile: '',
@@ -68,7 +75,46 @@ export default {
         workNumber: [{ required: true, message: '工号不能为空', trigger: 'blur' }],
         departmentName: [{ required: true, message: '部门不能为空', trigger: 'change' }],
         timeOfEntry: [{ required: true, message: '入职时间', trigger: 'blur' }]
+      },
+      treeData: [],
+      showTree: false,
+      loading: false
+    }
+  },
+  methods: {
+    async getDepartments() {
+      this.showTree = true
+      this.loading = true
+      const { depts } = await getDepartments()
+      this.treeData = tranLisToTreeData(depts, '')
+      this.loading = false
+    },
+    selectNode(node) {
+      this.formData.departmentName = node.name
+      this.showTree = false
+    },
+    async btnOk() {
+      try {
+        await this.$refs.addEmploy.validate()
+        await addEmployee(this.formData)
+        this.$parent.getEmployeeList && this.$parent.getEmployeeList()
+        this.$parent.showDialog = false
+      } catch (error) {
+        console.log(error)
       }
+    },
+    btnCancel() {
+      this.formData = {
+        username: '',
+        mobile: '',
+        formOfEmployment: '',
+        workNumber: '',
+        departmentName: '',
+        timeOfEntry: '',
+        correctionTime: ''
+      }
+      this.$refs.addEmploy.resetFields()
+      this.$emit('update:showDialog', false)
     }
   }
 }

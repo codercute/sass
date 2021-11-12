@@ -25,3 +25,5 @@ export function getUserDetailId(id){
 export function logout() {
 
 }
+
+  

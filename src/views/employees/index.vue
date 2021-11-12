@@ -6,9 +6,9 @@
           <span>共{{ page.total }}条记录</span>
         </template>
         <template v-slot:after>
-          <el-button size="small" type="success">导入</el-button>
-          <el-button size="small" type="danger">导出</el-button>
-          <el-button size="small" type="primary">新增员工</el-button>
+          <el-button size="small" type="success" @click="$router.push('/import')">导入</el-button>
+          <el-button size="small" type="danger" @click="exportData">导出</el-button>
+          <el-button size="small" type="primary" @click="showDialog=true">新增员工</el-button>
         </template>
       </page-tools>
       <el-card v-loading="loading">
@@ -30,7 +30,7 @@
           </el-table-column>
           <el-table-column label="操作" sortable="" fixed="right" width="280">
             <template v-slot="{ row }">
-              <el-button type="text" size="small">查看</el-button>
+              <el-button type="text" size="small" @click="$router.push(`/employees/detail/${row.id}`)">查看</el-button>
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
@@ -51,6 +51,7 @@
 import { getEmployeeList, delEmployee } from '@/api/employees'
 import employess from '@/api/constant/employees'
 import addEmployee from './components/add-employee'
+import { formatDate } from '@/filters'
 export default {
   components: {
     addEmployee
@@ -64,7 +65,7 @@ export default {
         size: 10,
         total: 0
       },
-      showDialog: true
+      showDialog: false
     }
   },
   created() {
@@ -95,6 +96,41 @@ export default {
         this.$message({
           type: 'info',
           message: '已取消'
+        })
+      })
+    },
+    exportData() {
+      const headers = {
+        '姓名': 'username',
+        '手机号': 'mobile',
+        '入职日期': 'timeOfEntry',
+        '聘用形式': 'formOfEmployment',
+        '转正日期': 'correctionTime',
+        '工号': 'workNumber',
+        '部门': 'departmentName'
+      }
+      import('@/vendor/Export2Excel').then(async excel => {
+        const { rows } = await getEmployeeList({ page: 1, size: this.page.total })
+        const data = this.formatJson(headers, rows)
+        excel.export_json_to_excel({
+          header: Object.keys(headers),
+          data,
+          filename: '员工列表'
+        })
+      })
+    },
+    formatJson(headers, rows) {
+      return rows.map(item => { // 对象
+        return Object.keys(headers).map(key => { // 中文
+          if (headers[key] === 'timeOfEntry' || headers[key] === 'correctionTime') {
+            return formatDate(item[headers[key]])
+          } else if (headers[key] === 'formOfEmployment') {
+            var en = employess.hireType.find(obj => {
+              return obj.id === item[headers[key]]
+            })
+            return en ? en.value : '未知'
+          }
+          return item[headers[key]]
         })
       })
     }
