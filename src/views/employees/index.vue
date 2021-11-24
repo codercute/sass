@@ -6,9 +6,18 @@
           <span>共{{ page.total }}条记录</span>
         </template>
         <template v-slot:after>
-          <el-button size="small" type="success" @click="$router.push('/import')">导入</el-button>
-          <el-button size="small" type="danger" @click="exportData">导出</el-button>
-          <el-button size="small" type="primary" @click="showDialog=true">新增员工</el-button>
+          <el-button
+            size="small"
+            type="success"
+            @click="$router.push('/import')"
+          >导入</el-button
+          >
+          <el-button size="small" type="danger" @click="exportData"
+            >导出</el-button
+          >
+          <el-button size="small" type="primary" @click="showDialog = true"
+            >新增员工</el-button
+          >
         </template>
       </page-tools>
       <el-card v-loading="loading">
@@ -16,7 +25,12 @@
           <el-table-column label="序号" sortable="" type="index" />
           <el-table-column label="姓名" sortable="" prop="username" />
           <el-table-column label="工号" sortable="" prop="workNumber" />
-          <el-table-column label="聘用形式" sortable="" prop="formOfEmployment" :formatter="formatEmpolyeeList" />
+          <el-table-column
+            label="聘用形式"
+            sortable=""
+            prop="formOfEmployment"
+            :formatter="formatEmpolyeeList"
+          />
           <el-table-column label="部门" sortable="" prop="departmentName" />
           <el-table-column label="入职时间" sortable="" prop="timeOfEntry">
             <template v-slot="{ row }">
@@ -30,20 +44,49 @@
           </el-table-column>
           <el-table-column label="操作" sortable="" fixed="right" width="280">
             <template v-slot="{ row }">
-              <el-button type="text" size="small" @click="$router.push(`/employees/detail/${row.id}`)">查看</el-button>
+              <el-button
+               :disabled="!checkPermission('POINT-USER-UPDATE')"
+                type="text"
+                size="small"
+                @click="$router.push(`/employees/detail/${row.id}`)"
+                >查看</el-button
+              >
               <el-button type="text" size="small">转正</el-button>
               <el-button type="text" size="small">调岗</el-button>
               <el-button type="text" size="small">离职</el-button>
-              <el-button type="text" size="small">角色</el-button>
-              <el-button type="text" size="small" @click="deleteEmployee(row.id)">删除</el-button>
+              <el-button type="text" size="small" @click="editRole(row.id)"
+                >角色</el-button
+              >
+              <el-button
+                type="text"
+                size="small"
+                @click="deleteEmployee(row.id)"
+                >删除</el-button
+              >
             </template>
           </el-table-column>
         </el-table>
-        <el-row type="flex" justify="center" align="middle" style="height: 60px">
-          <el-pagination :page-size="page.size" :current-page="page.page" :total="page.total" layout="prev, pager, next" @current-change="changePage"></el-pagination>
+        <el-row
+          type="flex"
+          justify="center"
+          align="middle"
+          style="height: 60px"
+        >
+          <el-pagination
+            :page-size="page.size"
+            :current-page="page.page"
+            :total="page.total"
+            layout="prev, pager, next"
+            @current-change="changePage"
+          ></el-pagination>
         </el-row>
       </el-card>
       <add-employee :show-dialog.sync="showDialog"></add-employee>
+      <assign-role
+        :show-role-dialog.sync="showRoleDialog"
+        ref="assignRole"
+        :user-id="userId"
+      ></assign-role>
     </div>
   </div>
 </template>
@@ -52,9 +95,11 @@ import { getEmployeeList, delEmployee } from '@/api/employees'
 import employess from '@/api/constant/employees'
 import addEmployee from './components/add-employee'
 import { formatDate } from '@/filters'
+import AssignRole from './components/assign-role'
 export default {
   components: {
-    addEmployee
+    addEmployee,
+    AssignRole
   },
   data() {
     return {
@@ -65,7 +110,9 @@ export default {
         size: 10,
         total: 0
       },
-      showDialog: false
+      showDialog: false,
+      userId: null,
+      showRoleDialog: false
     }
   },
   created() {
@@ -88,7 +135,7 @@ export default {
       return obj ? obj.value : '未知'
     },
     deleteEmployee(id) {
-      this.$confirm('确定要删除该员工吗？').then(async() => {
+      this.$confirm('确定要删除该员工吗？').then(async () => {
         await delEmployee(id)
         this.$message.success('删除员工成功')
         this.getEmployeeList()
@@ -130,14 +177,19 @@ export default {
             })
             return en ? en.value : '未知'
           }
+          console.log(1)
           return item[headers[key]]
         })
       })
+    },
+    async editRole(id) {
+      this.userId = id
+      await this.$refs.assignRole.getUserDetailById(id)
+      this.showRoleDialog = true
     }
   }
 }
 </script>
 
 <style>
-
 </style>

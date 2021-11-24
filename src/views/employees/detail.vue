@@ -6,10 +6,10 @@
           <el-tab-pane label="登录账户设置">
             <el-form ref="userForm" :rules="rules" :model="userInfo" label-width="120px" style="margin-left: 120px; margin-top:30px">
               <el-form-item label="姓名:" prop="username">
-                <el-input v-model="userInfo.username" style="width:300px"></el-input>
+                <el-input v-model="userInfo.username" style="width:300px" />
               </el-form-item>
               <el-form-item label="密码:" prop="password2">
-                <el-input v-model="userInfo.password2" style="width:300px" type="password"></el-input>
+                <el-input v-model="userInfo.password2" style="width:300px" type="password" />
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="saveUser">更新</el-button>
@@ -17,10 +17,10 @@
             </el-form>
           </el-tab-pane>
           <el-tab-pane label="个人详情">
-            <user-info></user-info>
+            <user-info />
           </el-tab-pane>
           <el-tab-pane label="岗位信息">
-            <job-info></job-info>
+            <job-info />
           </el-tab-pane>
         </el-tabs>
       </el-card>

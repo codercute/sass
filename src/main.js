@@ -11,6 +11,7 @@ import '@/styles/index.scss' // global css
 import App from './App'
 import store from './store'
 import router from './router'
+import checkPermission from './mixin/checkPermission'
 
 import '@/icons' // icon
 import '@/permission' // permission control
@@ -36,6 +37,7 @@ Vue.use(ElementUI, { locale })
 // Vue.use(ElementUI)
 Vue.use(Component)
 Vue.config.productionTip = false
+Vue.mixin(checkPermission)
 
 Object.keys(directives).forEach(key => {
   Vue.directive(key, directives[key])

@@ -10,7 +10,7 @@
 
 <script>
 export default {
-
+  name:'social_securitys'
 }
 </script>
 
